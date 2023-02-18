@@ -1,0 +1,12 @@
+esphome:
+  name: esp32-testing-mlx9060
+
+
+external_components:
+  - source:
+      type:
+      url:
+      ref:
+
+esp32:
+  board:

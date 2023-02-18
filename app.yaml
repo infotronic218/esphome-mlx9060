@@ -1,0 +1,29 @@
+esphome:
+  name: esp32-for-testing-mlx9060
+
+esp32:
+  board: esp-wrover-kit
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: "testing"
+
+ota:
+  password: "testing"
+
+wifi:
+  ssid: "Livebox-360B"
+  password: "4CHfRsdx9C9c8VdH2t"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esp32-For-Testing-Mlx9060"
+    password: "Rhg1rO0ix8Oz"
+
+captive_portal:
+    
