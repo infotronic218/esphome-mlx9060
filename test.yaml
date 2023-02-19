@@ -33,5 +33,23 @@ wifi:
 
 captive_portal:
     
+i2c:
+  sda: 21
+  scl: 22
+  id: bus_i2c
 
+#mlx90640:
+#  id: test_mlx9040
 
+sensor:
+  - platform: mlx90640
+    id: test_mlx9040
+    temperature:
+      name: "MLX90640 Temperature"
+    min_temperature:
+      name: "MLX90640 Min temperature"
+    max_temperature:
+      name: "MLX90640 Max temperature"
+
+    #sensors:
+     
