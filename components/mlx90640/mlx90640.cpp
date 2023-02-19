@@ -2,7 +2,7 @@
 
 namespace esphome{
     namespace mlx90640{
-
+       
         void MLX90640::setup(){
             // Initialize the the sensor data 
             //this->temperature_sensor = new sensor::Sensor();

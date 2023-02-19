@@ -40,6 +40,7 @@ namespace esphome
             private:
             MLX90640_Driver *driver ;
             public:
+                MLX90640_API(MLX90640_Driver *driver);
                 int MLX90640_DumpEE(uint8_t slaveAddr, uint16_t *eeData);
                 int MLX90640_GetFrameData(uint8_t slaveAddr, uint16_t *frameData);
                 int MLX90640_ExtractParameters(uint16_t *eeData, paramsMLX90640 *mlx90640);

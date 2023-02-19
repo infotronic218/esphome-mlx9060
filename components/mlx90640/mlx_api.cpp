@@ -4,6 +4,9 @@ namespace esphome
 {
     namespace mlx90640
     {
+         MLX90640_API::MLX90640_API(MLX90640_Driver *driver){
+            this->driver = driver ;
+         }
         int MLX90640_API::MLX90640_DumpEE(uint8_t slaveAddr, uint16_t *eeData) {
                 return this->driver->MLX90640_I2CRead(slaveAddr, 0x2400, 832, eeData);
         }

@@ -3,10 +3,13 @@
 
 namespace esphome {
     namespace mlx90640{
+
+    MLX90640_Driver::MLX90640_Driver(i2c::I2CDevice *device){
+            this->i2cDev = device;
+    }
         // Read a number of words from startAddress. Store into Data array.
 // Returns 0 if successful, -1 if error
-int MLX90640_Driver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int startAddress,
-                     unsigned int nWordsRead, uint16_t *data) {
+int MLX90640_Driver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int startAddress,unsigned int nWordsRead, uint16_t *data) {
     // Caller passes number of 'unsigned ints to read', increase this to 'bytes
     // to read'
     uint16_t bytesRemaining = nWordsRead * 2;
@@ -53,13 +56,13 @@ int MLX90640_Driver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int start
 
 
 // Write two bytes to a two byte address
-int MLX90640_Driver::MLX90640_I2CWrite(uint8_t _deviceAddress, unsigned int writeAddress,
-                      uint16_t data) {
+int MLX90640_Driver::MLX90640_I2CWrite(uint8_t _deviceAddress, unsigned int writeAddress,uint16_t data) {
+    //this->i2cDev->write();
     Wire.beginTransmission((uint8_t)_deviceAddress);
     Wire.write(writeAddress >> 8);    // MSB
     Wire.write(writeAddress & 0xFF);  // LSB
     Wire.write(data >> 8);            // MSB
-    Wire.write(data & 0xFF);          // LSB
+    Wire.write(data & 0xFF);          // LSBe
     if (Wire.endTransmission() != 0) {
         // Sensor did not ACK
         Serial.println("Error: Sensor did not ack");
