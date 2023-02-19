@@ -3,6 +3,9 @@
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/i2c/i2c.h"
+#include "mlx90640.h"
+#include "mlx_driver.h"
+#include "mlx_api.h"
 
 
 
@@ -22,6 +25,7 @@ namespace esphome {
                void set_min_temperature_sensor(sensor::Sensor *ts){this->min_temperature_sensor_ = ts;}
                void set_max_temperature_sensor(sensor::Sensor *ts){this->max_temperature_sensor_= ts;};
 
+               
         };
     }
 }
