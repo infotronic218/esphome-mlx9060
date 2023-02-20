@@ -2,16 +2,16 @@
 
 namespace esphome
 {
-    namespace mlx90640
+    namespace mlx90640_app
     {
-         MLX90640_API::MLX90640_API(MLX90640_Driver *driver){
+         MLXApi::MLXApi(MLXDriver *driver){
             this->driver = driver ;
          }
-        int MLX90640_API::MLX90640_DumpEE(uint8_t slaveAddr, uint16_t *eeData) {
+        int MLXApi::MLX90640_DumpEE(uint8_t slaveAddr, uint16_t *eeData) {
                 return this->driver->MLX90640_I2CRead(slaveAddr, 0x2400, 832, eeData);
         }
 
-        int MLX90640_API::MLX90640_GetFrameData(uint8_t slaveAddr, uint16_t *frameData) {
+        int MLXApi::MLX90640_GetFrameData(uint8_t slaveAddr, uint16_t *frameData) {
             uint16_t dataReady = 1;
             uint16_t controlRegister1;
             uint16_t statusRegister;
@@ -61,7 +61,7 @@ namespace esphome
             return frameData[833];
         }
 
-        int MLX90640_API::MLX90640_ExtractParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        int MLXApi::MLX90640_ExtractParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             int error = 0;
 
             ExtractVDDParameters(eeData, mlx90640);
@@ -84,7 +84,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::MLX90640_SetResolution(uint8_t slaveAddr, uint8_t resolution) {
+        int MLXApi::MLX90640_SetResolution(uint8_t slaveAddr, uint8_t resolution) {
             uint16_t controlRegister1;
             int value;
             int error;
@@ -103,7 +103,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::MLX90640_GetCurResolution(uint8_t slaveAddr) {
+        int MLXApi::MLX90640_GetCurResolution(uint8_t slaveAddr) {
             uint16_t controlRegister1;
             int resolutionRAM;
             int error;
@@ -119,7 +119,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::MLX90640_SetRefreshRate(uint8_t slaveAddr, uint8_t refreshRate) {
+        int MLXApi::MLX90640_SetRefreshRate(uint8_t slaveAddr, uint8_t refreshRate) {
             uint16_t controlRegister1;
             int value;
             int error;
@@ -137,7 +137,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::MLX90640_GetRefreshRate(uint8_t slaveAddr) {
+        int MLXApi::MLX90640_GetRefreshRate(uint8_t slaveAddr) {
             uint16_t controlRegister1;
             int refreshRate;
             int error;
@@ -153,7 +153,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::MLX90640_SetInterleavedMode(uint8_t slaveAddr) {
+        int MLXApi::MLX90640_SetInterleavedMode(uint8_t slaveAddr) {
             uint16_t controlRegister1;
             int value;
             int error;
@@ -170,7 +170,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::MLX90640_SetChessMode(uint8_t slaveAddr) {
+        int MLXApi::MLX90640_SetChessMode(uint8_t slaveAddr) {
             uint16_t controlRegister1;
             int value;
             int error;
@@ -187,7 +187,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::MLX90640_GetCurMode(uint8_t slaveAddr) {
+        int MLXApi::MLX90640_GetCurMode(uint8_t slaveAddr) {
             uint16_t controlRegister1;
             int modeRAM;
             int error;
@@ -203,7 +203,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::MLX90640_CalculateTo(uint16_t *frameData, const paramsMLX90640 *params,
+        void MLXApi::MLX90640_CalculateTo(uint16_t *frameData, const paramsMLX90640 *params,
                                 float emissivity, float tr, float *result) {
             float vdd;
             float ta;
@@ -359,7 +359,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::MLX90640_GetImage(uint16_t *frameData, const paramsMLX90640 *params,
+        void MLXApi::MLX90640_GetImage(uint16_t *frameData, const paramsMLX90640 *params,
                             float *result) {
             float vdd;
             float ta;
@@ -465,7 +465,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        float MLX90640_API::MLX90640_GetVdd(uint16_t *frameData, const paramsMLX90640 *params) {
+        float MLXApi::MLX90640_GetVdd(uint16_t *frameData, const paramsMLX90640 *params) {
             float vdd;
             float resolutionCorrection;
 
@@ -485,7 +485,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        float MLX90640_API::MLX90640_GetTa(uint16_t *frameData, const paramsMLX90640 *params) {
+        float MLXApi::MLX90640_GetTa(uint16_t *frameData, const paramsMLX90640 *params) {
             float ptat;
             float ptatArt;
             float vdd;
@@ -518,7 +518,7 @@ namespace esphome
         }
 
         //------------------------------------------------------------------------------
-        void MLX90640_API::MLX90640_BadPixelsCorrection(uint16_t *pixels, float *to, int mode,
+        void MLXApi::MLX90640_BadPixelsCorrection(uint16_t *pixels, float *to, int mode,
                                         paramsMLX90640 *params) {
             float ap[4];
             uint8_t pix;
@@ -592,7 +592,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractVDDParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractVDDParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             int16_t kVdd;
             int16_t vdd25;
 
@@ -612,7 +612,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractPTATParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractPTATParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             float KvPTAT;
             float KtPTAT;
             int16_t vPTAT25;
@@ -642,7 +642,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractGainParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractGainParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             int16_t gainEE;
 
             gainEE = eeData[48];
@@ -655,7 +655,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractTgcParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractTgcParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             float tgc;
             tgc = eeData[60] & 0x00FF;
             if (tgc > 127) {
@@ -668,7 +668,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractResolutionParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractResolutionParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             uint8_t resolutionEE;
             resolutionEE = (eeData[56] & 0x3000) >> 12;
 
@@ -677,7 +677,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractKsTaParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractKsTaParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             float KsTa;
             KsTa = (eeData[60] & 0xFF00) >> 8;
             if (KsTa > 127) {
@@ -690,7 +690,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractKsToParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractKsToParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             int KsToScale;
             int8_t step;
 
@@ -725,7 +725,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractAlphaParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractAlphaParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             int accRow[24];
             int accColumn[32];
             int p = 0;
@@ -813,7 +813,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractOffsetParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractOffsetParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             int occRow[24];
             int occColumn[32];
             int p = 0;
@@ -875,7 +875,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractKtaPixelParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractKtaPixelParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             int p = 0;
             int8_t KtaRC[4];
             int8_t KtaRoCo;
@@ -957,7 +957,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractKvPixelParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractKvPixelParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             int p = 0;
             int8_t KvT[4];
             int8_t KvRoCo;
@@ -1032,7 +1032,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractCPParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractCPParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             float alphaSP[2];
             int16_t offsetSP[2];
             float cpKv;
@@ -1088,7 +1088,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        void MLX90640_API::ExtractCILCParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        void MLXApi::ExtractCILCParameters(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             float ilChessC[3];
             uint8_t calibrationModeEE;
 
@@ -1121,7 +1121,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::ExtractDeviatingPixels(uint16_t *eeData, paramsMLX90640 *mlx90640) {
+        int MLXApi::ExtractDeviatingPixels(uint16_t *eeData, paramsMLX90640 *mlx90640) {
             uint16_t pixCnt        = 0;
             uint16_t brokenPixCnt  = 0;
             uint16_t outlierPixCnt = 0;
@@ -1189,7 +1189,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::CheckAdjacentPixels(uint16_t pix1, uint16_t pix2) {
+        int MLXApi::CheckAdjacentPixels(uint16_t pix1, uint16_t pix2) {
             int pixPosDif;
 
             pixPosDif = pix1 - pix2;
@@ -1208,7 +1208,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        float MLX90640_API::GetMedian(float *values, int n) {
+        float MLXApi::GetMedian(float *values, int n) {
             float temp;
 
             for (int i = 0; i < n - 1; i++) {
@@ -1231,7 +1231,7 @@ namespace esphome
 
         //------------------------------------------------------------------------------
 
-        int MLX90640_API::IsPixelBad(uint16_t pixel, paramsMLX90640 *params) {
+        int MLXApi::IsPixelBad(uint16_t pixel, paramsMLX90640 *params) {
             for (int i = 0; i < 5; i++) {
                 if (pixel == params->outlierPixels[i] ||
                     pixel == params->brokenPixels[i]) {

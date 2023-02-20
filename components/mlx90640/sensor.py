@@ -22,7 +22,7 @@ CONF_I2C_ADDR = 0x57
 
 DEPENDENCIES = ['i2c']
 
-mlx90640_ns = cg.esphome_ns.namespace("mlx90640")
+mlx90640_ns = cg.esphome_ns.namespace("mlx90640_app")
 MLX90640 = mlx90640_ns.class_("MLX90640", i2c.I2CDevice, cg.PollingComponent)
 
 CONFIG_SCHEMA = (

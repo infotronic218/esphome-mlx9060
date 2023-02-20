@@ -2,14 +2,14 @@
 #include "mlx_driver.h"
 
 namespace esphome {
-    namespace mlx90640{
+    namespace mlx90640_app{
 
-    MLX90640_Driver::MLX90640_Driver(i2c::I2CDevice *device){
+   MLXDriver::MLXDriver(i2c::I2CDevice *device){
             this->i2cDev = device;
     }
         // Read a number of words from startAddress. Store into Data array.
 // Returns 0 if successful, -1 if error
-int MLX90640_Driver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int startAddress,unsigned int nWordsRead, uint16_t *data) {
+int MLXDriver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int startAddress,unsigned int nWordsRead, uint16_t *data) {
     // Caller passes number of 'unsigned ints to read', increase this to 'bytes
     // to read'
     uint16_t bytesRemaining = nWordsRead * 2;
@@ -34,7 +34,7 @@ int MLX90640_Driver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int start
         if (numberOfBytesToRead > I2C_BUFFER_LENGTH)
             numberOfBytesToRead = I2C_BUFFER_LENGTH;
 
-        Wire.requestFrom((uint8_t)_deviceAddress, numberOfBytesToRead);
+        Wire.requestFrom((int)_deviceAddress,(int) numberOfBytesToRead);
         if (Wire.available()) {
             for (uint16_t x = 0; x < numberOfBytesToRead / 2; x++) {
                 // Store data into array
@@ -56,7 +56,7 @@ int MLX90640_Driver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int start
 
 
 // Write two bytes to a two byte address
-int MLX90640_Driver::MLX90640_I2CWrite(uint8_t _deviceAddress, unsigned int writeAddress,uint16_t data) {
+int MLXDriver::MLX90640_I2CWrite(uint8_t _deviceAddress, unsigned int writeAddress,uint16_t data) {
     //this->i2cDev->write();
     Wire.beginTransmission((uint8_t)_deviceAddress);
     Wire.write(writeAddress >> 8);    // MSB
@@ -79,5 +79,15 @@ int MLX90640_Driver::MLX90640_I2CWrite(uint8_t _deviceAddress, unsigned int writ
 
     return (0);  // Success
       }
+
+     // Returns true if the MLX90640 is detected on the I2C bus.
+// 如果在I2C总线上检测到MLX90640，则返回true
+        boolean MLXDriver::isConnected(uint8_t addr) {
+            Wire.beginTransmission((uint8_t)addr);
+            if (Wire.endTransmission() != 0) return (false);  // Sensor did not ACK.
+            return (true);
+        }
+
+      
     }
 }
