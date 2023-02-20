@@ -39,9 +39,7 @@ captive_portal:
 
 
 
-#mlx90640:
-#  id: test_mlx9040
-
+#Configuring MLX90640 Thermal sensor
 sensor:
   - platform: mlx90640
     id: test_mlx9040
