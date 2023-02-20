@@ -1,6 +1,6 @@
 #include "mlx90640.h"
 
-const byte MLX90640_address = 0x33;  // Default 7-bit unshifted address of the
+uint8_t MLX90640_address = 0x33;  // Default 7-bit unshifted address of the
                                      // MLX90640.  MLX90640的默认7位未移位地址
 #define TA_SHIFT \
     8  // Default shift for MLX90640 in open air.  MLX90640在户外的默认移位
@@ -91,9 +91,14 @@ namespace esphome{
        
         void MLX90640::setup(){
             // Initialize the the sensor data 
-                Wire.begin();
-                Wire.setClock(450000);  // Increase I2C clock speed to 400kHz. 增加I2C时钟速度到400kHz
-                this->driver = new MLXDriver(this);
+                ESP_LOGI(TAG, "SDA PIN %d ", this->sda_);
+                ESP_LOGI(TAG, "SCL PIN %d ", this->scl_);
+                ESP_LOGI(TAG, "I2C Frequency %d",  this->frequency_);
+                ESP_LOGI(TAG, "Address %d ", this->addr_);
+                MLX90640_address = this->addr_ ;
+                Wire.begin((int)this->sda_, (int)this->scl_, (uint32_t)this->frequency_);
+                Wire.setClock(this->frequency_);  // Increase I2C clock speed to 400kHz. 增加I2C时钟速度到400kHz
+                this->driver = new MLXDriver(&Wire);
                 this->mlxApi = new MLXApi(this->driver);
                 int status;
                 uint16_t eeMLX90640[832];  // 32 * 24 = 768
@@ -119,6 +124,8 @@ namespace esphome{
                 SetRefreshRate = this->mlxApi->MLX90640_SetRefreshRate(0x33, 0x05);
                 // Once params are extracted, we can release eeMLX90640 array.
                 // 一旦提取了参数，我们就可以释放eeMLX90640数组
+                }else{
+                    ESP_LOGE(TAG, "The sensor is not connected");
                 }
                 // Display bottom side colorList and info.  显示底部的颜色列表和信息
 
@@ -130,10 +137,9 @@ namespace esphome{
               startTime = loopTime;
            // publish data to esphome
            this->temperature_sensor_->publish_state(10);
-           this->min_temperature_sensor_->publish_state(10);
-           this->max_temperature_sensor_->publish_state(20);
-           //this->min_index->publish_state(40);
-           //this->max_index->publish_state(60);
+           this->min_temperature_sensor_->publish_state(min_v);
+           this->max_temperature_sensor_->publish_state(max_v);
+;
 
            if(this->driver->isConnected(MLX90640_address)){
                    for (byte x = 0; x < speed_setting; x++)  // x < 2 Read both subpages
@@ -295,28 +301,31 @@ namespace esphome{
                     //}
 
                     /*M5.Lcd.setCursor(60, 222);  // update min & max temp.  更新最小和最大温度
-                    M5.Lcd.setTextColor(TFT_WHITE);
+                    M5.Lcd.setTextColor(TFT_WHITE);*/
 
                     if (max_v > max_cam_v | max_v < min_cam_v) {
-                        M5.Lcd.setTextColor(TFT_RED);
-                        M5.Lcd.printf("Error", 1);
+                        //M5.Lcd.setTextColor(TFT_RED);
+                        ESP_LOGE(TAG, "MLX READING VALUE ERRORS");
+                        //M5.Lcd.printf("Error", 1);
                     } else {
-                        M5.Lcd.print("Min:");
-                        M5.Lcd.print(min_v, 1);
-                        M5.Lcd.print("C  ");
-                        M5.Lcd.print("Max:");
-                        M5.Lcd.print(max_v, 1);
-                        M5.Lcd.print("C");
-                        M5.Lcd.setCursor(180, 94);  // update spot temp text.  更新现场温度文本
-                        M5.Lcd.print(spot_v, 1);
-                        M5.Lcd.printf("C");
-                        M5.Lcd.drawCircle(
+                        ESP_LOGI(TAG, "Min temperature : %d C ",min_v);
+                        ESP_LOGI(TAG, "Max temperature : %d C ",max_v);
+                        //M5.Lcd.print("Min:");
+                        //M5.Lcd.print(min_v, 1);
+                        //M5.Lcd.print("C  ");
+                        //M5.Lcd.print("Max:");
+                        //M5.Lcd.print(max_v, 1);
+                        //M5.Lcd.print("C");
+                        //M5.Lcd.setCursor(180, 94);  // update spot temp text.  更新现场温度文本
+                        //M5.Lcd.print(spot_v, 1);
+                        //M5.Lcd.printf("C");
+                        /*M5.Lcd.drawCircle(
                             160, 120, 6, TFT_WHITE);  // update center spot icon. 更新中心点图标
                         M5.Lcd.drawLine(160, 110, 160, 130,
                                         TFT_WHITE);  // vertical line.  垂直的线
                         M5.Lcd.drawLine(150, 120, 170, 120,
-                                        TFT_WHITE);  // horizontal line.  水平线
-                    }*/
+                                        TFT_WHITE);  // horizontal line.  水平线*/
+                    }
                     loopTime = millis();
                     endTime  = loopTime;
                     fps      = 1000 / (endTime - startTime);
@@ -326,6 +335,8 @@ namespace esphome{
                     M5.Lcd.setCursor(284, 210);
                     M5.Lcd.print("fps:" + String(fps));
                     M5.Lcd.setTextSize(1);*/
+           }else{
+            ESP_LOGE(TAG, "The sensor is not connected");
            }
 
         }

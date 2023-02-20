@@ -1,11 +1,11 @@
 #include"esphome.h"
 #include "mlx_driver.h"
-
+static const char * TAG = "MLXDriver";
 namespace esphome {
     namespace mlx90640_app{
 
-   MLXDriver::MLXDriver(i2c::I2CDevice *device){
-            this->i2cDev = device;
+   MLXDriver::MLXDriver(TwoWire *wire){
+            this->wire = wire;
     }
         // Read a number of words from startAddress. Store into Data array.
 // Returns 0 if successful, -1 if error
@@ -21,12 +21,12 @@ int MLXDriver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int startAddres
 
     // Setup a series of chunked I2C_BUFFER_LENGTH byte reads
     while (bytesRemaining > 0) {
-        Wire.beginTransmission(_deviceAddress);
-        Wire.write(startAddress >> 8);         // MSB
-        Wire.write(startAddress & 0xFF);       // LSB
-        if (Wire.endTransmission(false) != 0)  // Do not release bus
+        this->wire->beginTransmission(_deviceAddress);
+        this->wire->write(startAddress >> 8);         // MSB
+        this->wire->write(startAddress & 0xFF);       // LSB
+        if (this->wire->endTransmission(false) != 0)  // Do not release bus
         {
-            Serial.println("No ack read");
+            ESP_LOGW(TAG,"No ack read");
             return (0);  // Sensor did not ACK
         }
 
@@ -34,8 +34,8 @@ int MLXDriver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int startAddres
         if (numberOfBytesToRead > I2C_BUFFER_LENGTH)
             numberOfBytesToRead = I2C_BUFFER_LENGTH;
 
-        Wire.requestFrom((int)_deviceAddress,(int) numberOfBytesToRead);
-        if (Wire.available()) {
+        this->wire->requestFrom((int)_deviceAddress,(int) numberOfBytesToRead);
+        if (this->wire->available()) {
             for (uint16_t x = 0; x < numberOfBytesToRead / 2; x++) {
                 // Store data into array
                 data[dataSpot] = Wire.read() << 8;  // MSB
@@ -58,14 +58,14 @@ int MLXDriver::MLX90640_I2CRead(uint8_t _deviceAddress, unsigned int startAddres
 // Write two bytes to a two byte address
 int MLXDriver::MLX90640_I2CWrite(uint8_t _deviceAddress, unsigned int writeAddress,uint16_t data) {
     //this->i2cDev->write();
-    Wire.beginTransmission((uint8_t)_deviceAddress);
-    Wire.write(writeAddress >> 8);    // MSB
-    Wire.write(writeAddress & 0xFF);  // LSB
-    Wire.write(data >> 8);            // MSB
-    Wire.write(data & 0xFF);          // LSBe
-    if (Wire.endTransmission() != 0) {
+    this->wire->beginTransmission((uint8_t)_deviceAddress);
+    this->wire->write(writeAddress >> 8);    // MSB
+    this->wire->write(writeAddress & 0xFF);  // LSB
+    this->wire->write(data >> 8);            // MSB
+    this->wire->write(data & 0xFF);          // LSBe
+    if (this->wire->endTransmission() != 0) {
         // Sensor did not ACK
-        Serial.println("Error: Sensor did not ack");
+        ESP_LOGW(TAG,"Error: Sensor did not ack");
         return (-1);
     }
     
@@ -83,8 +83,8 @@ int MLXDriver::MLX90640_I2CWrite(uint8_t _deviceAddress, unsigned int writeAddre
      // Returns true if the MLX90640 is detected on the I2C bus.
 // 如果在I2C总线上检测到MLX90640，则返回true
         boolean MLXDriver::isConnected(uint8_t addr) {
-            Wire.beginTransmission((uint8_t)addr);
-            if (Wire.endTransmission() != 0) return (false);  // Sensor did not ACK.
+            this->wire->beginTransmission((uint8_t)addr);
+            if (this->wire->endTransmission() != 0) return (false);  // Sensor did not ACK.
             return (true);
         }
 
