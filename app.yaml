@@ -26,4 +26,21 @@ wifi:
     password: "Rhg1rO0ix8Oz"
 
 captive_portal:
+
+
+#Configuring MLX90640 Thermal sensor
+sensor:
+  - platform: mlx90640
+    id: test_mlx9040
+    update_interval: 20s
+    sda: 25  # I2C SDA PIN
+    scl: 26  # I2C SCL PIN
+    frequency: 450000  # I2C Clock Frequency
+    address: 0x33 # MLX90640 Address
+    temperature:
+      name: "MLX90640 Temperature"
+    min_temperature:
+      name: "MLX90640 Min temperature"
+    max_temperature:
+      name: "MLX90640 Max temperature"
     

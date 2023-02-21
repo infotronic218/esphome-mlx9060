@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import pins
-from esphome.components import sensor, i2c
+from esphome.components import sensor, text_sensor, i2c
 from esphome.const import (
     CONF_ID,
     CONF_TEMPERATURE,
@@ -69,7 +69,7 @@ async def to_code(config):
     #cg.add(var.set_scl(CONF_SCL))
     if CONF_TEMPERATURE in config:
         conf = config[CONF_TEMPERATURE]
-        sens = await sensor.new_sensor(conf)
+        sens = await text_sensor.new_text_sensor(conf)
         cg.add(var.set_temperature_sensor(sens))
 
     if CONF_MIN_TEMPERATURE in config:

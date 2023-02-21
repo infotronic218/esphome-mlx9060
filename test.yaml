@@ -36,24 +36,31 @@ wifi:
 
 captive_portal:
     
+text_sensor:
 
-
-
-#Configuring MLX90640 Thermal sensor
 sensor:
-  - platform: mlx90640
-    id: test_mlx9040
-    update_interval: 20s
-    sda: 25  # I2C SDA PIN
-    scl: 26  # I2C SCL PIN
-    frequency: 450000  # I2C Clock Frequency
-    address: 0x33 # MLX90640 Address
-    temperature:
-      name: "MLX90640 Temperature"
-    min_temperature:
+    
+mlx90640:
+  id: thermal_cam
+  update_interval: 20s
+  sda: 25  # I2C SDA PIN
+  scl: 26  # I2C SCL PIN
+  frequency: 450000  # I2C Clock Frequency
+  address: 0x33 # MLX90640 Address
+  
+  pixel_data: # the pixel data text_sensor 
+    id: pixel_text_sensor
+    name: Pixel Camera data
+    disabled_by_default: false
+ 
+  min_temperature:
       name: "MLX90640 Min temperature"
-    max_temperature:
+  max_temperature:
       name: "MLX90640 Max temperature"
+  
+  
+
+
 
     #sensors:
 web_server:

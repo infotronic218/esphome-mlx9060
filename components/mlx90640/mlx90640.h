@@ -3,6 +3,7 @@
 #include<esphome.h>
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 #include "mlx90640.h"
 #include "mlx_api.h"
 #include "mlx_driver.h"
@@ -23,15 +24,17 @@ namespace esphome {
                 int frequency_ ;
                 MLXDriver *driver ;
                 MLXApi *mlxApi ;
-                sensor::Sensor *temperature_sensor_{nullptr};
+                text_sensor::TextSensor *pixel_data_{nullptr};
                 sensor::Sensor *min_temperature_sensor_{nullptr} ;
                 sensor::Sensor *max_temperature_sensor_{nullptr};
                 //sensor::Sensor *min_index ;
                // sensor::Sensor *max_index ;
               public:
+               float get_setup_priority() const override { return esphome::setup_priority::BUS; }
                void setup() override ;
                void update() override ;
-               void set_temperature_sensor(sensor::Sensor *t_sensor){this->temperature_sensor_= t_sensor;}
+               void mlx_update() ;
+               void set_pixel_data_sensor(text_sensor::TextSensor* t_sensor){this->pixel_data_= t_sensor;}
                void set_min_temperature_sensor(sensor::Sensor *ts){this->min_temperature_sensor_ = ts;}
                void set_max_temperature_sensor(sensor::Sensor *ts){this->max_temperature_sensor_= ts;};
                void set_addr(uint8_t addr){this->addr_ = addr;}

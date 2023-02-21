@@ -1,5 +1,5 @@
 #include "mlx90640.h"
-
+#include <base64.h>
 uint8_t MLX90640_address = 0x33;  // Default 7-bit unshifted address of the
                                      // MLX90640.  MLX90640的默认7位未移位地址
 #define TA_SHIFT \
@@ -72,6 +72,8 @@ const uint16_t camColors[] = {
     0xF060, 0xF040, 0xF020, 0xF800,
 };
 
+std::string payload ;
+
 long loopTime, startTime, endTime, fps;
 float get_point(float *p, uint8_t rows, uint8_t cols, int8_t x, int8_t y);
 void set_point(float *p, uint8_t rows, uint8_t cols, int8_t x, int8_t y,
@@ -84,7 +86,7 @@ float cubicInterpolate(float p[], float x);
 float bicubicInterpolate(float p[], float x, float y);
 void interpolate_image(float *src, uint8_t src_rows, uint8_t src_cols,
                        float *dest, uint8_t dest_rows, uint8_t dest_cols);
-
+void drawpixels(float *p, uint8_t rows, uint8_t cols, uint8_t boxWidth,uint8_t boxHeight, boolean showVal);
 
 namespace esphome{
     namespace mlx90640_app{
@@ -136,211 +138,147 @@ namespace esphome{
               loopTime  = millis();
               startTime = loopTime;
            // publish data to esphome
-           this->temperature_sensor_->publish_state(10);
+          // payload = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAlCAIAAAClPtxqAAAAZUlEQVRYhe3SgQmAMAxEUS8hdio3cP8Z3EAKba9bHBqSBR45Pp77OlRnMqmwwgrLhpFCbE4VRqJ3Hbb6K5uRa4ysNRb2O8yUWCDpjGCcKgygh25Gmgk/a00YiLsQA3KmX1hh38I2kIQWu9vDW1EAAAAASUVORK5CYII=";
+           this->pixel_data_->publish_state(payload);
            this->min_temperature_sensor_->publish_state(min_v);
            this->max_temperature_sensor_->publish_state(max_v);
-;
+
 
            if(this->driver->isConnected(MLX90640_address)){
-                   for (byte x = 0; x < speed_setting; x++)  // x < 2 Read both subpages
-                    {
-                        uint16_t mlx90640Frame[834];
-                        int status = this->mlxApi->MLX90640_GetFrameData(MLX90640_address, mlx90640Frame);
-                        if (status < 0) {
-                            ESP_LOGE(TAG,"GetFrame Error: %d",status);
-                            
-                        }
-
-                        float vdd = this->mlxApi->MLX90640_GetVdd(mlx90640Frame, &mlx90640);
-                        float Ta  = this->mlxApi->MLX90640_GetTa(mlx90640Frame, &mlx90640);
-                        float tr =
-                            Ta - TA_SHIFT;  // Reflected temperature based on the sensor ambient
-                                            // temperature.  根据传感器环境温度反射温度
-                        float emissivity = 0.95;
-                        this->mlxApi->MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr,
-                                            pixels);  // save pixels temp to array (pixels).
-                                                    // 保存像素temp到数组(像素)
-                        int mode_ = this->mlxApi->MLX90640_GetCurMode(MLX90640_address);
-                        // amendment.  修正案
-                        this->mlxApi->MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_,
-                                                    &mlx90640);
-                    }
-
-                    // Reverse image (order of Integer array).  反向图像(整数数组的顺序)
-                    if (reverseScreen == 1) {
-                        for (int x = 0; x < pixelsArraySize; x++) {
-                            if (x % COLS == 0)  // 32 values wide.  32宽值
-                            {
-                                for (int j = 0 + x, k = (COLS - 1) + x; j < COLS + x;
-                                    j++, k--) {
-                                    reversePixels[j] = pixels[k];
-                                    //         Serial.print(x);Serial.print(" = Rev ");
-                                    //         Serial.print(j);Serial.print(" ,  Nor
-                                    //         ");Serial.println(k);
-                                }
-                            }
-                        }
-                    }
-
-                    float dest_2d[INTERPOLATED_ROWS * INTERPOLATED_COLS];
-                    int ROWS_i, COLS_j;
-
-                    if (reverseScreen == 1) {
-                        // ** reversePixels  反向像素
-                        interpolate_image(reversePixels, ROWS, COLS, dest_2d, INTERPOLATED_ROWS,
-                                        INTERPOLATED_COLS);
-                    } else {
-                        interpolate_image(pixels, ROWS, COLS, dest_2d, INTERPOLATED_ROWS,
-                                        INTERPOLATED_COLS);
-                        // 32 * 24 = 768
-                        // 63 * 48 = 3072
-                        // pixels_2
-                        for (int y = 0; y < ROWS; y++) {
-                            for (int x = 0; x < COLS; x++) {
-                                // 原始数据
-                                pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))] =
-                                    pixels[y * COLS + x];
-                                if (x != 31)
-                                    pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 1)] =
-                                        (pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))] +
-                                        pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 2)]) /
-                                        2;
-                                else
-                                    pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 1)] =
-                                        (pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))]);
-                                // Serial.print(pixels_2[(((y * 2) * (COLS*2)) + (x * 2))]);
-                                // Serial.print(pixels[y*COLS+x]);
-                                // Serial.print(" ");
-                            }
-                            // Serial.println("\r\n");
-                        }
-                        /*
-                    //-------------------------
-                        // 计算x间隔插入数据
-                        for(int y = 0;y < ROWS;y++)//24
-                        {
-                        for(int x = 0;x < COLS;x++)//32
-                        {
-                            if(x != 31)
-                            pixels_2[(((y * 2) * (COLS*2)) + (x * 2)+1)] = ( pixels_2[(((y *
-                    2) * (COLS*2)) + (x * 2))] + pixels_2[(((y * 2) * (COLS*2)) + (x *
-                    2)+2)]) / 2; else pixels_2[(((y * 2) * (COLS*2)) + (x * 2)+1)] = (
-                    pixels_2[(((y * 2) * (COLS*2)) + (x * 2))] );
-                        }
-                        }
-                        */
-                        ///*
-                        // 计算y间隔插入数据
-                        for (int y = 0; y < ROWS; y++)  // 24
-                        {
-                            for (int x = 0; x < COLS_2; x++)  // 64
-                            {
-                                if (y != 23)
-                                    pixels_2[(((y * 2) + 1) * (COLS_2)) + x] =
-                                        (pixels_2[(((y * 2) * COLS_2) + x)] +
-                                        pixels_2[((((y * 2) + 2) * COLS_2) + x)]) /
-                                        2;
-                                else
-                                    pixels_2[(((y * 2) + 1) * (COLS_2)) + x] =
-                                        (pixels_2[(((y * 2) * COLS_2) + x)] +
-                                        pixels_2[(((y * 2) * COLS_2) + x)]) /
-                                        2;
-                            }
-                        }
-                        //*/
-                        /*
-                            //打印数据
-                            for(int y = 0;y < ROWS_2;y++)
-                            {
-                            for(int x = 0;x < COLS_2;x++)
-                            {
-                                Serial.print(pixels_2[y * COLS_2 + x]);
-                                Serial.print(" ");
-                            }
-                            Serial.println("\r\n");
-                            }
-                            //-------------------------
-                        // */
-                    }
-
-                    /*uint16_t boxsize  = min(M5.Lcd.width() / INTERPOLATED_ROWS,
-                                        M5.Lcd.height() / INTERPOLATED_COLS);
-                    uint16_t boxWidth = M5.Lcd.width() / INTERPOLATED_ROWS;
-                    // uint16_t boxWidth = 192 / INTERPOLATED_ROWS;
-                    uint16_t boxHeight =
-                        (M5.Lcd.height() - 31) / INTERPOLATED_COLS;  // 31 for bottom info*/
-                    // drawpixels(pixels, 24, INTERPOLATED_COLS, 8, 8, false);
-                    // drawpixels(pixels_2, 48, 64, 5, 5, false);
-                    /*drawpixels(dest_2d, INTERPOLATED_ROWS, INTERPOLATED_COLS, boxWidth,
-                            boxHeight, false);*/
-                    max_v      = MINTEMP;
-                    min_v      = MAXTEMP;
-                    int spot_v = pixels[360];
-                    spot_v     = pixels[768 / 2];
-                    // while(1);
-
-                    for (int itemp = 0; itemp < sizeof(pixels) / sizeof(pixels[0]); itemp++) {
-                        if (pixels[itemp] > max_v) {
-                            max_v = pixels[itemp];
-                        }
-                        if (pixels[itemp] < min_v) {
-                            min_v = pixels[itemp];
-                        }
-                    }
-
-                    /*M5.Lcd.setTextSize(2);
-                    M5.Lcd.fillRect(164, 220, 75, 18,
-                                    TFT_BLACK);  // clear max temp text.  清除最大温度文本
-                    M5.Lcd.fillRect(60, 220, 200, 18,
-                                    TFT_BLACK);  // clear spot temp text.  清除点临时文本*/
-                    int icolor = 0;
-                    // for (int icol = 0; icol <= 248;  icol++)
-                    //{
-                    // M5.Lcd.drawRect(36, 208, icol, 284 , camColors[icolor]);
-                    // icolor++;
-                    //}
-
-                    /*M5.Lcd.setCursor(60, 222);  // update min & max temp.  更新最小和最大温度
-                    M5.Lcd.setTextColor(TFT_WHITE);*/
-
-                    if (max_v > max_cam_v | max_v < min_cam_v) {
-                        //M5.Lcd.setTextColor(TFT_RED);
-                        ESP_LOGE(TAG, "MLX READING VALUE ERRORS");
-                        //M5.Lcd.printf("Error", 1);
-                    } else {
-                        ESP_LOGI(TAG, "Min temperature : %d C ",min_v);
-                        ESP_LOGI(TAG, "Max temperature : %d C ",max_v);
-                        //M5.Lcd.print("Min:");
-                        //M5.Lcd.print(min_v, 1);
-                        //M5.Lcd.print("C  ");
-                        //M5.Lcd.print("Max:");
-                        //M5.Lcd.print(max_v, 1);
-                        //M5.Lcd.print("C");
-                        //M5.Lcd.setCursor(180, 94);  // update spot temp text.  更新现场温度文本
-                        //M5.Lcd.print(spot_v, 1);
-                        //M5.Lcd.printf("C");
-                        /*M5.Lcd.drawCircle(
-                            160, 120, 6, TFT_WHITE);  // update center spot icon. 更新中心点图标
-                        M5.Lcd.drawLine(160, 110, 160, 130,
-                                        TFT_WHITE);  // vertical line.  垂直的线
-                        M5.Lcd.drawLine(150, 120, 170, 120,
-                                        TFT_WHITE);  // horizontal line.  水平线*/
-                    }
-                    loopTime = millis();
-                    endTime  = loopTime;
-                    fps      = 1000 / (endTime - startTime);
-                    /*M5.Lcd.fillRect(300, 209, 20, 12,
-                                    TFT_BLACK);  // Clear fps text area.  清除fps文本区域
-                    M5.Lcd.setTextSize(1);
-                    M5.Lcd.setCursor(284, 210);
-                    M5.Lcd.print("fps:" + String(fps));
-                    M5.Lcd.setTextSize(1);*/
+                   this->mlx_update();
            }else{
             ESP_LOGE(TAG, "The sensor is not connected");
            }
 
         }
 
+
+      void MLX90640::mlx_update(){
+        for (byte x = 0; x < speed_setting; x++)  // x < 2 Read both subpages
+                {
+                    uint16_t mlx90640Frame[834];
+                    int status = this->mlxApi->MLX90640_GetFrameData(MLX90640_address, mlx90640Frame);
+                    if (status < 0) {
+                    ESP_LOGE(TAG,"GetFrame Error: %d",status);
+                    }
+
+                    float vdd = this->mlxApi->MLX90640_GetVdd(mlx90640Frame, &mlx90640);
+                    float Ta  = this->mlxApi->MLX90640_GetTa(mlx90640Frame, &mlx90640);
+                    float tr =
+                        Ta - TA_SHIFT;  // Reflected temperature based on the sensor ambient
+                                        // temperature.  根据传感器环境温度反射温度
+                    float emissivity = 0.95;
+                    this->mlxApi->MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr,
+                                        pixels);  // save pixels temp to array (pixels).
+                                                // 保存像素temp到数组(像素)
+                    int mode_ = this->mlxApi->MLX90640_GetCurMode(MLX90640_address);
+                    // amendment.  修正案
+                    this->mlxApi->MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_,
+                                                &mlx90640);
+                }
+
+                // Reverse image (order of Integer array).  反向图像(整数数组的顺序)
+                if (reverseScreen == 1) {
+                    for (int x = 0; x < pixelsArraySize; x++) {
+                        if (x % COLS == 0)  // 32 values wide.  32宽值
+                        {
+                            for (int j = 0 + x, k = (COLS - 1) + x; j < COLS + x;
+                                j++, k--) {
+                                reversePixels[j] = pixels[k];
+                                //         Serial.print(x);Serial.print(" = Rev ");
+                                //         Serial.print(j);Serial.print(" ,  Nor
+                                //         ");Serial.println(k);
+                            }
+                        }
+                    }
+                }
+
+                float dest_2d[INTERPOLATED_ROWS * INTERPOLATED_COLS];
+                int ROWS_i, COLS_j;
+
+                if (reverseScreen == 1) {
+                    // ** reversePixels  反向像素
+                    interpolate_image(reversePixels, ROWS, COLS, dest_2d, INTERPOLATED_ROWS,
+                                    INTERPOLATED_COLS);
+                } else {
+                    interpolate_image(pixels, ROWS, COLS, dest_2d, INTERPOLATED_ROWS,
+                                    INTERPOLATED_COLS);
+                    // 32 * 24 = 768
+                    // 63 * 48 = 3072
+                    // pixels_2
+                    for (int y = 0; y < ROWS; y++) {
+                        for (int x = 0; x < COLS; x++) {
+                            // 原始数据
+                            pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))] =
+                                pixels[y * COLS + x];
+                            if (x != 31)
+                                pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 1)] =
+                                    (pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))] +
+                                    pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 2)]) /
+                                    2;
+                            else
+                                pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 1)] =
+                                    (pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))]);
+                            // Serial.print(pixels_2[(((y * 2) * (COLS*2)) + (x * 2))]);
+                            // Serial.print(pixels[y*COLS+x]);
+                            // Serial.print(" ");
+                        }
+                        
+                    }
+                
+                    // 计算y间隔插入数据
+                    for (int y = 0; y < ROWS; y++)  // 24
+                    {
+                        for (int x = 0; x < COLS_2; x++)  // 64
+                        {
+                            if (y != 23)
+                                pixels_2[(((y * 2) + 1) * (COLS_2)) + x] =
+                                    (pixels_2[(((y * 2) * COLS_2) + x)] +
+                                    pixels_2[((((y * 2) + 2) * COLS_2) + x)]) /
+                                    2;
+                            else
+                                pixels_2[(((y * 2) + 1) * (COLS_2)) + x] =
+                                    (pixels_2[(((y * 2) * COLS_2) + x)] +
+                                    pixels_2[(((y * 2) * COLS_2) + x)]) /
+                                    2;
+                        }
+                    }
+                
+                }
+
+                payload = "" ;
+                drawpixels(dest_2d, INTERPOLATED_ROWS, INTERPOLATED_COLS, 100,100, false);
+                String encoded = base64::encode(payload.c_str());
+                payload = "";
+                payload += encoded.c_str();
+                ESP_LOGI(TAG, "BASE64 IMAGE");
+                ESP_LOGI(TAG, payload.c_str());
+                //publish_state(payload);
+                max_v      = MINTEMP;
+                min_v      = MAXTEMP;
+                int spot_v = pixels[360];
+                spot_v     = pixels[768 / 2];
+                // while(1);
+
+                for (int itemp = 0; itemp < sizeof(pixels) / sizeof(pixels[0]); itemp++) {
+                    if (pixels[itemp] > max_v) {
+                        max_v = pixels[itemp];
+                    }
+                    if (pixels[itemp] < min_v) {
+                        min_v = pixels[itemp];
+                    }
+                }
+
+                if (max_v > max_cam_v | max_v < min_cam_v) {
+                    ESP_LOGE(TAG, "MLX READING VALUE ERRORS");
+                } else {
+                    ESP_LOGI(TAG, "Min temperature : %d C ",min_v);
+                    ESP_LOGI(TAG, "Max temperature : %d C ",max_v);
+                }
+                loopTime = millis();
+                endTime  = loopTime;
+                fps      = 1000 / (endTime - startTime);
+      }
         
         
 
@@ -451,6 +389,32 @@ void get_adjacents_2d(float *src, float *dest, uint8_t rows, uint8_t cols,
         for (int8_t delta_x = -1; delta_x < 3; delta_x++) {  // -1, 0, 1, 2
             row[delta_x + 1] =
                 get_point(src, rows, cols, x + delta_x, y + delta_y);
+        }
+    }
+}
+
+
+void drawpixels(float *p, uint8_t rows, uint8_t cols, uint8_t boxWidth,uint8_t boxHeight, boolean showVal) {
+    int colorTemp;
+    for (int y = 0; y < rows; y++) {
+        for (int x = 0; x < cols; x++) {
+            float val = get_point(p, rows, cols, x, y);
+
+            if (val >= MAXTEMP)
+                colorTemp = MAXTEMP;
+            else if (val <= MINTEMP)
+                colorTemp = MINTEMP;
+            else
+                colorTemp = val;
+
+            uint8_t colorIndex = map(colorTemp, MINTEMP, MAXTEMP, 0, 255);
+            colorIndex         = constrain(colorIndex, 0, 255);  // 0 ~ 255
+            // draw the pixels!
+            uint16_t color;
+            color = val * 2;
+            payload +=  camColors[colorIndex] ;
+            //M5.Lcd.fillRect(boxWidth * x, boxHeight * y, boxWidth, boxHeight,
+            //                camColors[colorIndex]);
         }
     }
 }
