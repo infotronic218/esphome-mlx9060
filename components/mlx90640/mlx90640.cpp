@@ -399,7 +399,7 @@ void drawpixels(float *p, uint8_t rows, uint8_t cols, uint8_t boxWidth,uint8_t b
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
             float val = get_point(p, rows, cols, x, y);
-
+            payload += val ;
             if (val >= MAXTEMP)
                 colorTemp = MAXTEMP;
             else if (val <= MINTEMP)
@@ -412,7 +412,8 @@ void drawpixels(float *p, uint8_t rows, uint8_t cols, uint8_t boxWidth,uint8_t b
             // draw the pixels!
             uint16_t color;
             color = val * 2;
-            payload +=  camColors[colorIndex] ;
+            //payload +=  camColors[colorIndex] ;
+            //payload +=  camColors[colorIndex] ;
             //M5.Lcd.fillRect(boxWidth * x, boxHeight * y, boxWidth, boxHeight,
             //                camColors[colorIndex]);
         }
