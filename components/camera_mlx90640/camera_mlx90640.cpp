@@ -168,7 +168,7 @@ namespace esphome{
                    this->mlx_update();
            }else{
             ESP_LOGE(TAG, "The sensor is not connected");
-               ThermalImageToWeb(mlx90640To,camColors, MINTEMP, MAXTEMP);
+               ThermalImageToWeb(pixels,camColors, MINTEMP, MAXTEMP);
            }
 
         }
@@ -273,7 +273,7 @@ namespace esphome{
                 int spot_v = pixels[360];
                 spot_v     = pixels[768 / 2];
                 // while(1);
-                ThermalImageToWeb(mlx90640To,camColors, MINTEMP, MAXTEMP); // Save the image on the local files
+                ThermalImageToWeb(pixels,camColors, MINTEMP, MAXTEMP); // Save the image on the local files
                 for (int itemp = 0; itemp < sizeof(pixels) / sizeof(pixels[0]); itemp++) {
                     if (pixels[itemp] > max_v) {
                         max_v = pixels[itemp];
