@@ -1,14 +1,18 @@
 esphome:
   name: esp32-for-testing-mlx9060
   includes:
+    - components/FS
   libraries:
     - Wire
+  
+ 
+
 
 external_components:
   - source: 
       type: local
       path: components
-    components: [mlx90640]
+    components: [camera_mlx90640]
 
 esp32:
   board: esp-wrover-kit
@@ -40,7 +44,7 @@ text_sensor:
 
 sensor:
     
-mlx90640:
+camera_mlx90640:
   id: thermal_cam
   update_interval: 20s
   sda: 25  # I2C SDA PIN

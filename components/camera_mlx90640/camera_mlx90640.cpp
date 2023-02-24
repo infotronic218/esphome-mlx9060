@@ -1,6 +1,8 @@
-#include "mlx90640.h"
-//#include <base64.h>
-#include <Base64.h>
+#include "camera_mlx90640.h"
+#include "mlx90640_image.h"
+#include "FS/SPIFFS.h"
+
+
 uint8_t MLX90640_address = 0x33;  // Default 7-bit unshifted address of the
                                      // MLX90640.  MLX90640的默认7位未移位地址
 #define TA_SHIFT \
@@ -15,7 +17,7 @@ float pixelsArraySize = COLS * ROWS;
 float pixels[COLS * ROWS];
 float pixels_2[COLS_2 * ROWS_2];
 float reversePixels[COLS * ROWS];
-
+uint16_t pixels_colored [ROWS][COLS] ;
 byte speed_setting = 2;  // High is 1 , Low is 2
 bool reverseScreen = false;
 
@@ -91,7 +93,9 @@ void drawpixels(float *p, uint8_t rows, uint8_t cols, uint8_t boxWidth,uint8_t b
 
 namespace esphome{
     namespace mlx90640_app{
-       
+        MLX90640::MLX90640(web_server_base::WebServerBase *base): base_(base){
+
+        }
         void MLX90640::setup(){
             // Initialize the the sensor data 
                 ESP_LOGI(TAG, "SDA PIN %d ", this->sda_);
@@ -132,15 +136,30 @@ namespace esphome{
                 }
                 // Display bottom side colorList and info.  显示底部的颜色列表和信息
 
+                if(!SPIFFS.begin(true)){
+                    ESP_LOGE(TAG,"An Error has occurred while mounting SPIFFS");
+                }
+
+                this->base_->get_server();
+                
+                this->base_->get_server()->on("/thermal-camera", HTTP_GET, [](AsyncWebServerRequest *request){
+                    ESP_LOGI(TAG, "Sending the image");
+                    request->send(SPIFFS, "/thermal.bmp", "image/bmp", false);
+                });
+
+        }
+        
+        void MLX90640::create_image(){
+       
+               
+
         }
 
         void MLX90640::update()
         {
               loopTime  = millis();
               startTime = loopTime;
-           // publish data to esphome
-          // payload = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAlCAIAAAClPtxqAAAAZUlEQVRYhe3SgQmAMAxEUS8hdio3cP8Z3EAKba9bHBqSBR45Pp77OlRnMqmwwgrLhpFCbE4VRqJ3Hbb6K5uRa4ysNRb2O8yUWCDpjGCcKgygh25Gmgk/a00YiLsQA3KmX1hh38I2kIQWu9vDW1EAAAAASUVORK5CYII=";
-           this->pixel_data_->publish_state(payload);
+           //this->pixel_data_->publish_state(payload);
            this->min_temperature_sensor_->publish_state(min_v);
            this->max_temperature_sensor_->publish_state(max_v);
 
@@ -149,33 +168,7 @@ namespace esphome{
                    this->mlx_update();
            }else{
             ESP_LOGE(TAG, "The sensor is not connected");
-            const int width = 8;
-                    const int height = 8;
-                   uint8_t pixels[8][8] = {
-    { 255, 255, 255, 255, 255, 255, 255, 255 },
-    { 255, 0, 0, 0, 0, 0, 0, 255 },
-    { 255, 0, 255, 0, 0, 255, 0, 255 },
-    { 255, 0, 0, 0, 0, 0, 0, 255 },
-    { 255, 0, 0, 0, 0, 0, 0, 255 },
-    { 255, 0, 255, 255, 255, 255, 0, 255 },
-    { 255, 0, 0, 0, 0, 0, 0, 255 },
-    { 255, 255, 255, 255, 255, 255, 255, 255 }
-  };
-
-                const int bufferSize = width * height * 4;
-                payload ="";
-                for(int i=0; i<8;i++){
-                    for(int j=0; j<8; j++){
-                       payload+= pixels[i][j];
-                    }
-                   
-                }
-                
-                String encoded = base64::encode(payload.c_str());
-              
-
-                    // Print the base64 string
-                    ESP_LOGD(TAG,encoded.c_str());
+               ThermalImageToWeb(mlx90640To,camColors, MINTEMP, MAXTEMP);
            }
 
         }
@@ -274,20 +267,13 @@ namespace esphome{
                 
                 }
 
-                payload = "" ;
-                drawpixels(dest_2d, INTERPOLATED_ROWS, INTERPOLATED_COLS, 100,100, false);
-                String encoded = base64::encode(payload.c_str());
-                payload = "";
-                payload += encoded.c_str();
-                ESP_LOGI(TAG, "BASE64 IMAGE");
-                ESP_LOGI(TAG, payload.c_str());
-                //publish_state(payload);
+               
                 max_v      = MINTEMP;
                 min_v      = MAXTEMP;
                 int spot_v = pixels[360];
                 spot_v     = pixels[768 / 2];
                 // while(1);
-
+                ThermalImageToWeb(mlx90640To,camColors, MINTEMP, MAXTEMP); // Save the image on the local files
                 for (int itemp = 0; itemp < sizeof(pixels) / sizeof(pixels[0]); itemp++) {
                     if (pixels[itemp] > max_v) {
                         max_v = pixels[itemp];
@@ -440,6 +426,7 @@ void drawpixels(float *p, uint8_t rows, uint8_t cols, uint8_t boxWidth,uint8_t b
             // draw the pixels!
             uint16_t color;
             color = val * 2;
+            pixels_colored[x][y] = camColors[colorIndex];
             //payload +=  camColors[colorIndex] ;
             //payload +=  camColors[colorIndex] ;
             //M5.Lcd.fillRect(boxWidth * x, boxHeight * y, boxWidth, boxHeight,

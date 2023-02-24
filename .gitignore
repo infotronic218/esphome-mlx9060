@@ -4,3 +4,8 @@
 /.esphome/
 /secrets.yaml
 /M5Stack/
+/esp32_camera_web_server/
+/mlx90640/
+/web_server/
+/web_server_base/
+
