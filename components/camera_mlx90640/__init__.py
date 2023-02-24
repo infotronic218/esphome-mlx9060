@@ -64,6 +64,7 @@ CONFIG_SCHEMA = (
 )
 
 
+
 @coroutine_with_priority(45.0)
 async def to_code(config):
     paren = await cg.get_variable(config[CONF_WEB_SERVER_BASE_ID])
