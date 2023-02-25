@@ -27,7 +27,6 @@ namespace esphome {
                 MLXDriver *driver ;
                 MLXApi *mlxApi ;
                 web_server_base::WebServerBase *base_;
-                text_sensor::TextSensor *pixel_data_{nullptr};
                 sensor::Sensor *min_temperature_sensor_{nullptr} ;
                 sensor::Sensor *max_temperature_sensor_{nullptr};
                 sensor::Sensor *mean_temperature_sensor_{nullptr};
@@ -41,7 +40,6 @@ namespace esphome {
                void update() override ;
                void create_image();
                void mlx_update() ;
-               void set_pixel_data_sensor(text_sensor::TextSensor* t_sensor){this->pixel_data_= t_sensor;}
                void set_min_temperature_sensor(sensor::Sensor *ts){this->min_temperature_sensor_ = ts;}
                void set_max_temperature_sensor(sensor::Sensor *ts){this->max_temperature_sensor_= ts;};
                void set_mean_temperature_sensor(sensor::Sensor *ts){this->mean_temperature_sensor_= ts;};

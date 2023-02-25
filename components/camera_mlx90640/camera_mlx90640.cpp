@@ -109,7 +109,9 @@ namespace esphome{
                 MLX90640_address = this->addr_ ;
                 MINTEMP = this->mintemp_ ;
                 MAXTEMP = this->maxtemp_ ;
-                ESP_LOGI(TAG, "Size %d ", (sizeof(pixels) / sizeof(pixels[0])));
+                
+                ESP_LOGI(TAG, "Color MinTemp %d ", MINTEMP);
+                ESP_LOGI(TAG, "Color MaxTemp %d ", MAXTEMP);
                 Wire.begin((int)this->sda_, (int)this->scl_, (uint32_t)this->frequency_);
                 Wire.setClock(this->frequency_);  // Increase I2C clock speed to 400kHz. 增加I2C时钟速度到400kHz
                 this->driver = new MLXDriver(&Wire);
@@ -247,8 +249,10 @@ namespace esphome{
                     ESP_LOGE(TAG, "MLX READING VALUE ERRORS");
                     dataValid = false ;
                 } else {
-                    ESP_LOGI(TAG, "Min temperature : %d C ",min_v);
-                    ESP_LOGI(TAG, "Max temperature : %d C ",max_v);
+                    ESP_LOGI(TAG, "Min temperature : %.2f C ",min_v);
+                    ESP_LOGI(TAG, "Max temperature : %.2f C ",max_v);
+                    ESP_LOGI(TAG, "Mean temperature : %.2f C ",meanTemp);
+                    ESP_LOGI(TAG, "Median temperature : %.2f C ",medianTemp);
                     dataValid = true ;
                 }
                 loopTime = millis();
