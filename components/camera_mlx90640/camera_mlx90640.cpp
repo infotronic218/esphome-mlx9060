@@ -225,8 +225,8 @@ namespace esphome{
             }
 
     
-              medianTemp = (mlx90640To[165]+mlx90640To[180]+mlx90640To[176]+mlx90640To[192]) / 4.0;  // Temp in Center - based on 4 pixels
-
+              //medianTemp = (mlx90640To[165]+mlx90640To[180]+mlx90640To[176]+mlx90640To[192]) / 4.0;  // Temp in Center - based on 4 pixels
+                medianTemp = (pixels[165]+pixels[180]+pixels[176]+pixels[192]) / 4.0;
                 max_v      = MINTEMP;
                 min_v      = MAXTEMP;
                 int spot_v = pixels[360];
