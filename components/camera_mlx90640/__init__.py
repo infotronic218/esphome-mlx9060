@@ -25,7 +25,10 @@ CONF_I2C_ADDRESS = "address"
 CONF_SDA = "sda"
 CONF_SCL = "scl"
 CONF_FREQUENCY = "frequency"
-CONF_PIXEL_DATA = "pixel_data"
+CONF_MEAN_TEMPERATURE = "mean_temperature"
+CONF_MEDIAN_TEMPERATURE = "median_temperature"
+CONF_MINTEMP = "mintemp"
+CONF_MAXTEMP = "maxtemp"
 
 
 
@@ -44,21 +47,32 @@ CONFIG_SCHEMA = (
       cv.Optional(CONF_SDA): int,
       cv.Optional(CONF_FREQUENCY):int ,
       cv.Optional(CONF_I2C_ADDRESS):int ,
-      cv.Optional(CONF_PIXEL_DATA): text_sensor.text_sensor_schema(
-               #name ="Pixel data"
-            ),
+      cv.Optional(CONF_MAXTEMP):int ,
+      cv.Optional(CONF_MINTEMP):int ,
       cv.Optional(CONF_MIN_TEMPERATURE): sensor.sensor_schema(
                 unit_of_measurement=UNIT_CELSIUS,
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_TEMPERATURE,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-    cv.Optional(CONF_MAX_TEMPERATURE): sensor.sensor_schema(
-                unit_of_measurement=UNIT_CELSIUS,
-                accuracy_decimals=2,
-                device_class=DEVICE_CLASS_TEMPERATURE,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
+       cv.Optional(CONF_MAX_TEMPERATURE): sensor.sensor_schema(
+                    unit_of_measurement=UNIT_CELSIUS,
+                    accuracy_decimals=2,
+                    device_class=DEVICE_CLASS_TEMPERATURE,
+                    state_class=STATE_CLASS_MEASUREMENT,
+                ),
+        cv.Optional(CONF_MEAN_TEMPERATURE): sensor.sensor_schema(
+                    unit_of_measurement=UNIT_CELSIUS,
+                    accuracy_decimals=2,
+                    device_class=DEVICE_CLASS_TEMPERATURE,
+                    state_class=STATE_CLASS_MEASUREMENT,
+                ),
+        cv.Optional(CONF_MEDIAN_TEMPERATURE): sensor.sensor_schema(
+                    unit_of_measurement=UNIT_CELSIUS,
+                    accuracy_decimals=2,
+                    device_class=DEVICE_CLASS_TEMPERATURE,
+                    state_class=STATE_CLASS_MEASUREMENT,
+                ),
     }).extend(cv.polling_component_schema("60s"))
     #.extend(i2c.i2c_device_schema(CONF_I2C_ADDR))
 )
@@ -76,11 +90,6 @@ async def to_code(config):
     #cg.add(var.set_frequency(CONF_FREQUENCY))
     #cg.add(var.set_sda(CONF_SDA))
     #cg.add(var.set_scl(CONF_SCL))
-    if CONF_PIXEL_DATA in config:
-        conf = config[CONF_PIXEL_DATA]
-        sens = await text_sensor.new_text_sensor(conf)
-        cg.add(var.set_pixel_data_sensor(sens))
-
     if CONF_MIN_TEMPERATURE in config:
         conf = config[CONF_MIN_TEMPERATURE]
         sens = await sensor.new_sensor(conf)
@@ -90,6 +99,16 @@ async def to_code(config):
         conf = config[CONF_MAX_TEMPERATURE]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_max_temperature_sensor(sens))
+    
+    if CONF_MEAN_TEMPERATURE in config:
+        conf = config[CONF_MEAN_TEMPERATURE]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_mean_temperature_sensor(sens))
+    
+    if CONF_MEDIAN_TEMPERATURE in config:
+        conf = config[CONF_MEDIAN_TEMPERATURE]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_median_temperature_sensor(sens))
         
     if CONF_I2C_ADDRESS in config:
         addr = config[CONF_I2C_ADDRESS]
@@ -103,6 +122,15 @@ async def to_code(config):
     if CONF_FREQUENCY in config:
         freq = config[CONF_FREQUENCY]
         cg.add(var.set_frequency(freq))
+    
+    if CONF_MINTEMP in config:
+        min = config[CONF_MINTEMP]
+        cg.add(var.set_mintemp(min))
+
+    if CONF_MAXTEMP in config:
+        max = config[CONF_MAXTEMP]
+        cg.add(var.set_maxtemp(max))
+
 
 
 

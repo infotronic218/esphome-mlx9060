@@ -27,18 +27,22 @@ static const char * TAG = "MLX90640" ;
 static float mlx90640To[COLS * ROWS];
 paramsMLX90640 mlx90640;
 float signedMag12ToFloat(uint16_t val);
+bool dataValid = false ;
+float medianTemp ;
+float meanTemp ;
+
 
 
 // low range of the sensor (this will be blue on the screen).
 // 传感器的低量程(屏幕上显示为蓝色)
 int MINTEMP   = 24;   // For color mapping.  颜色映射
-int min_v     = 24;   // Value of current min temp.  当前最小温度的值
+float min_v     = 24;   // Value of current min temp.  当前最小温度的值
 int min_cam_v = -40;  // Spec in datasheet.  规范的数据表
 
 // high range of the sensor (this will be red on the screen).
 // 传感器的高量程(屏幕上显示为红色)
 int MAXTEMP      = 35;   // For color mapping.  颜色映射
-int max_v        = 35;   // Value of current max temp.  当前最大温度值
+float max_v        = 35;   // Value of current max temp.  当前最大温度值
 int max_cam_v    = 300;  // Spec in datasheet.  规范的数据表
 int resetMaxTemp = 45;
 
@@ -103,6 +107,8 @@ namespace esphome{
                 ESP_LOGI(TAG, "I2C Frequency %d",  this->frequency_);
                 ESP_LOGI(TAG, "Address %d ", this->addr_);
                 MLX90640_address = this->addr_ ;
+                MINTEMP = this->mintemp_ ;
+                MAXTEMP = this->maxtemp_ ;
                 Wire.begin((int)this->sda_, (int)this->scl_, (uint32_t)this->frequency_);
                 Wire.setClock(this->frequency_);  // Increase I2C clock speed to 400kHz. 增加I2C时钟速度到400kHz
                 this->driver = new MLXDriver(&Wire);
@@ -160,10 +166,14 @@ namespace esphome{
               loopTime  = millis();
               startTime = loopTime;
            //this->pixel_data_->publish_state(payload);
-           this->min_temperature_sensor_->publish_state(min_v);
-           this->max_temperature_sensor_->publish_state(max_v);
-
-
+           if(dataValid)
+           {
+                this->min_temperature_sensor_->publish_state(min_v);
+                this->max_temperature_sensor_->publish_state(max_v);
+                this->mean_temperature_sensor_->publish_state(meanTemp);
+                this->median_temperature_sensor_->publish_state(medianTemp);
+           }
+           
            if(this->driver->isConnected(MLX90640_address)){
                    this->mlx_update();
            }else{
@@ -190,106 +200,36 @@ namespace esphome{
 
 
       void MLX90640::mlx_update(){
-        for (byte x = 0; x < speed_setting; x++)  // x < 2 Read both subpages
-                {
-                    uint16_t mlx90640Frame[834];
-                    int status = this->mlxApi->MLX90640_GetFrameData(MLX90640_address, mlx90640Frame);
-                    if (status < 0) {
-                    ESP_LOGE(TAG,"GetFrame Error: %d",status);
-                    }
-
-                    float vdd = this->mlxApi->MLX90640_GetVdd(mlx90640Frame, &mlx90640);
-                    float Ta  = this->mlxApi->MLX90640_GetTa(mlx90640Frame, &mlx90640);
-                    float tr =
-                        Ta - TA_SHIFT;  // Reflected temperature based on the sensor ambient
-                                        // temperature.  根据传感器环境温度反射温度
-                    float emissivity = 0.95;
-                    this->mlxApi->MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr,
-                                        pixels);  // save pixels temp to array (pixels).
-                                                // 保存像素temp到数组(像素)
-                    int mode_ = this->mlxApi->MLX90640_GetCurMode(MLX90640_address);
-                    // amendment.  修正案
-                    this->mlxApi->MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_,
-                                                &mlx90640);
+            for (byte x = 0; x < speed_setting; x++)  // x < 2 Read both subpages
+            {
+                uint16_t mlx90640Frame[834];
+                int status = this->mlxApi->MLX90640_GetFrameData(MLX90640_address, mlx90640Frame);
+                if (status < 0) {
+                ESP_LOGE(TAG,"GetFrame Error: %d",status);
                 }
 
-                // Reverse image (order of Integer array).  反向图像(整数数组的顺序)
-                if (reverseScreen == 1) {
-                    for (int x = 0; x < pixelsArraySize; x++) {
-                        if (x % COLS == 0)  // 32 values wide.  32宽值
-                        {
-                            for (int j = 0 + x, k = (COLS - 1) + x; j < COLS + x;
-                                j++, k--) {
-                                reversePixels[j] = pixels[k];
-                                //         Serial.print(x);Serial.print(" = Rev ");
-                                //         Serial.print(j);Serial.print(" ,  Nor
-                                //         ");Serial.println(k);
-                            }
-                        }
-                    }
-                }
+                float vdd = this->mlxApi->MLX90640_GetVdd(mlx90640Frame, &mlx90640);
+                float Ta  = this->mlxApi->MLX90640_GetTa(mlx90640Frame, &mlx90640);
+                float tr = Ta - TA_SHIFT;  // Reflected temperature based on the sensor ambient
+                                    // temperature.  根据传感器环境温度反射温度
+                float emissivity = 0.95;
+                this->mlxApi->MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, pixels);  // save pixels temp to array (pixels).
+                                            // 保存像素temp到数组(像素)
+                int mode_ = this->mlxApi->MLX90640_GetCurMode(MLX90640_address);
+                // amendment.  修正案
+                this->mlxApi->MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_,
+                                            &mlx90640);
+            }
 
-                float dest_2d[INTERPOLATED_ROWS * INTERPOLATED_COLS];
-                int ROWS_i, COLS_j;
+    
+              medianTemp = (mlx90640To[165]+mlx90640To[180]+mlx90640To[176]+mlx90640To[192]) / 4.0;  // Temp in Center - based on 4 pixels
 
-                if (reverseScreen == 1) {
-                    // ** reversePixels  反向像素
-                    interpolate_image(reversePixels, ROWS, COLS, dest_2d, INTERPOLATED_ROWS,
-                                    INTERPOLATED_COLS);
-                } else {
-                    interpolate_image(pixels, ROWS, COLS, dest_2d, INTERPOLATED_ROWS,
-                                    INTERPOLATED_COLS);
-                    // 32 * 24 = 768
-                    // 63 * 48 = 3072
-                    // pixels_2
-                    for (int y = 0; y < ROWS; y++) {
-                        for (int x = 0; x < COLS; x++) {
-                            // 原始数据
-                            pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))] =
-                                pixels[y * COLS + x];
-                            if (x != 31)
-                                pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 1)] =
-                                    (pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))] +
-                                    pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 2)]) /
-                                    2;
-                            else
-                                pixels_2[(((y * 2) * (COLS * 2)) + (x * 2) + 1)] =
-                                    (pixels_2[(((y * 2) * (COLS * 2)) + (x * 2))]);
-                            // Serial.print(pixels_2[(((y * 2) * (COLS*2)) + (x * 2))]);
-                            // Serial.print(pixels[y*COLS+x]);
-                            // Serial.print(" ");
-                        }
-                        
-                    }
-                
-                    // 计算y间隔插入数据
-                    for (int y = 0; y < ROWS; y++)  // 24
-                    {
-                        for (int x = 0; x < COLS_2; x++)  // 64
-                        {
-                            if (y != 23)
-                                pixels_2[(((y * 2) + 1) * (COLS_2)) + x] =
-                                    (pixels_2[(((y * 2) * COLS_2) + x)] +
-                                    pixels_2[((((y * 2) + 2) * COLS_2) + x)]) /
-                                    2;
-                            else
-                                pixels_2[(((y * 2) + 1) * (COLS_2)) + x] =
-                                    (pixels_2[(((y * 2) * COLS_2) + x)] +
-                                    pixels_2[(((y * 2) * COLS_2) + x)]) /
-                                    2;
-                        }
-                    }
-                
-                }
-
-             
-               
                 max_v      = MINTEMP;
                 min_v      = MAXTEMP;
                 int spot_v = pixels[360];
                 spot_v     = pixels[768 / 2];
                 // while(1);
-               
+                float total =0 ;
                 for (int itemp = 0; itemp < sizeof(pixels) / sizeof(pixels[0]); itemp++) {
                     if (pixels[itemp] > max_v) {
                         max_v = pixels[itemp];
@@ -297,14 +237,18 @@ namespace esphome{
                     if (pixels[itemp] < min_v) {
                         min_v = pixels[itemp];
                     }
+                    total += pixels[itemp] ;
                 }
+                meanTemp = total/((sizeof(pixels) / sizeof(pixels[0])));
 
                  ThermalImageToWeb(pixels,camColors,  min_v,  max_v); // Save the image on the local files
                 if (max_v > max_cam_v | max_v < min_cam_v) {
                     ESP_LOGE(TAG, "MLX READING VALUE ERRORS");
+                    dataValid = false ;
                 } else {
                     ESP_LOGI(TAG, "Min temperature : %d C ",min_v);
                     ESP_LOGI(TAG, "Max temperature : %d C ",max_v);
+                    dataValid = true ;
                 }
                 loopTime = millis();
                 endTime  = loopTime;

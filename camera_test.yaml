@@ -51,16 +51,16 @@ camera_mlx90640:
   scl: 26  # I2C SCL PIN
   frequency: 450000  # I2C Clock Frequency
   address: 0x33 # MLX90640 Address
-  
-  pixel_data: # the pixel data text_sensor 
-    id: pixel_text_sensor
-    name: Pixel Camera data
-    disabled_by_default: false
- 
+  mintemp: 24 # Minimal temperature for color mapping
+  maxtemp: 35 # Maximal temperature for color mapping
   min_temperature:
       name: "MLX90640 Min temperature"
   max_temperature:
       name: "MLX90640 Max temperature"
+  mean_temperature:
+      name: "MLX90640 mean temperature"
+  median_temperature:
+      name: "MLX90640 median temperature"
   
   
 
