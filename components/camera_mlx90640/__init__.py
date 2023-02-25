@@ -43,12 +43,12 @@ CONFIG_SCHEMA = (
       cv.GenerateID(CONF_WEB_SERVER_BASE_ID): cv.use_id(
                 web_server_base.WebServerBase
             ),
-      cv.Optional(CONF_SCL):int,
-      cv.Optional(CONF_SDA): int,
-      cv.Optional(CONF_FREQUENCY):int ,
-      cv.Optional(CONF_I2C_ADDRESS):int ,
-      cv.Optional(CONF_MAXTEMP):int ,
-      cv.Optional(CONF_MINTEMP):int ,
+      cv.Required(CONF_SCL):int,
+      cv.Required(CONF_SDA): int,
+      cv.Required(CONF_FREQUENCY):int ,
+      cv.Required(CONF_I2C_ADDRESS):int ,
+      cv.Required(CONF_MAXTEMP):int ,
+      cv.Required(CONF_MINTEMP):int ,
       cv.Optional(CONF_MIN_TEMPERATURE): sensor.sensor_schema(
                 unit_of_measurement=UNIT_CELSIUS,
                 accuracy_decimals=2,

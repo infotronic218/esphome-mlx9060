@@ -49,7 +49,7 @@ camera_mlx90640:
   update_interval: 20s
   sda: 25  # I2C SDA PIN
   scl: 26  # I2C SCL PIN
-  frequency: 450000  # I2C Clock Frequency
+  frequency: 400000  # I2C Clock Frequency
   address: 0x33 # MLX90640 Address
   mintemp: 24 # Minimal temperature for color mapping
   maxtemp: 35 # Maximal temperature for color mapping
@@ -58,9 +58,9 @@ camera_mlx90640:
   max_temperature:
       name: "MLX90640 Max temperature"
   mean_temperature:
-      name: "MLX90640 mean temperature"
+      name: "MLX90640 Mean temperature"
   median_temperature:
-      name: "MLX90640 median temperature"
+      name: "MLX90640 Median temperature"
   
   
 

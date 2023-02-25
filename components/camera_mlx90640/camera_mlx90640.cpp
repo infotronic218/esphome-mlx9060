@@ -109,6 +109,7 @@ namespace esphome{
                 MLX90640_address = this->addr_ ;
                 MINTEMP = this->mintemp_ ;
                 MAXTEMP = this->maxtemp_ ;
+                ESP_LOGI(TAG, "Size %d ", (sizeof(pixels) / sizeof(pixels[0])));
                 Wire.begin((int)this->sda_, (int)this->scl_, (uint32_t)this->frequency_);
                 Wire.setClock(this->frequency_);  // Increase I2C clock speed to 400kHz. 增加I2C时钟速度到400kHz
                 this->driver = new MLXDriver(&Wire);
