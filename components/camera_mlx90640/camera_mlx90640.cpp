@@ -168,7 +168,22 @@ namespace esphome{
                    this->mlx_update();
            }else{
             ESP_LOGE(TAG, "The sensor is not connected");
-               ThermalImageToWeb(pixels,camColors, MINTEMP, MAXTEMP);
+               for(int i=0; i<32*24; i++){
+                if(i%2==0){
+                    pixels[i] = 64;
+                }
+                if(i%3==0){
+                    pixels[i] = 128;
+                }
+                if(i%5==0){
+                    pixels[i] = 255;
+                }
+
+                if(i%5==0){
+                    pixels[i] = 1024;
+                }
+               }
+               ThermalImageToWeb(pixels,camColors,  min_v,  max_v); 
            }
 
         }
@@ -267,13 +282,14 @@ namespace esphome{
                 
                 }
 
+             
                
                 max_v      = MINTEMP;
                 min_v      = MAXTEMP;
                 int spot_v = pixels[360];
                 spot_v     = pixels[768 / 2];
                 // while(1);
-                ThermalImageToWeb(pixels,camColors, MINTEMP, MAXTEMP); // Save the image on the local files
+               
                 for (int itemp = 0; itemp < sizeof(pixels) / sizeof(pixels[0]); itemp++) {
                     if (pixels[itemp] > max_v) {
                         max_v = pixels[itemp];
@@ -283,6 +299,7 @@ namespace esphome{
                     }
                 }
 
+                 ThermalImageToWeb(pixels,camColors,  min_v,  max_v); // Save the image on the local files
                 if (max_v > max_cam_v | max_v < min_cam_v) {
                     ESP_LOGE(TAG, "MLX READING VALUE ERRORS");
                 } else {
