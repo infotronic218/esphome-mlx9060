@@ -5,15 +5,15 @@
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
-#include "mlx_api.h"
-#include "mlx_driver.h"
+#include "MLX90640_API.h"
+#include "MLX90640_I2C_Driver.h"
 #include <Wire.h>
 
 
 namespace esphome {
     namespace mlx90640_app{
-         class MLXDriver ;
-         class MLXApi ;
+         //class MLXDriver ;
+         //class MLXApi ;
 
          class MLX90640: public PollingComponent {
               private:
@@ -24,8 +24,7 @@ namespace esphome {
                 float mintemp_;
                 float maxtemp_; 
                 int frequency_ ;
-                MLXDriver *driver ;
-                MLXApi *mlxApi ;
+               
                 web_server_base::WebServerBase *base_;
                 sensor::Sensor *min_temperature_sensor_{nullptr} ;
                 sensor::Sensor *max_temperature_sensor_{nullptr};

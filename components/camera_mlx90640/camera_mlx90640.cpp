@@ -114,16 +114,15 @@ namespace esphome{
                 ESP_LOGI(TAG, "Color MaxTemp %d ", MAXTEMP);
                 Wire.begin((int)this->sda_, (int)this->scl_, (uint32_t)this->frequency_);
                 Wire.setClock(this->frequency_);  // Increase I2C clock speed to 400kHz. 增加I2C时钟速度到400kHz
-                this->driver = new MLXDriver(&Wire);
-                this->mlxApi = new MLXApi(this->driver);
+                MLX90640_I2CInit(&Wire);
                 int status;
                 uint16_t eeMLX90640[832];  // 32 * 24 = 768
-                if(this->driver->isConnected(MLX90640_address)){
-                status = this->mlxApi->MLX90640_DumpEE(MLX90640_address, eeMLX90640);
+                if(MLX90640_isConnected(MLX90640_address)){
+                status = MLX90640_DumpEE(MLX90640_address, eeMLX90640);
                 if (status != 0) 
                 ESP_LOGE(TAG,"Failed to load system parameters");
 
-                status = this->mlxApi->MLX90640_ExtractParameters(eeMLX90640, &mlx90640);
+                status = MLX90640_ExtractParameters(eeMLX90640, &mlx90640);
                 if (status != 0)  ESP_LOGE(TAG,"Parameter extraction failed");
                 
                 int SetRefreshRate;
@@ -137,7 +136,7 @@ namespace esphome{
                 // 0x05 – 16Hz // OK
                 // 0x06 – 32Hz // Fail
                 // 0x07 – 64Hz
-                SetRefreshRate = this->mlxApi->MLX90640_SetRefreshRate(0x33, 0x05);
+                SetRefreshRate = MLX90640_SetRefreshRate(0x33, 0x05);
                 // Once params are extracted, we can release eeMLX90640 array.
                 // 一旦提取了参数，我们就可以释放eeMLX90640数组
                 }else{
@@ -149,7 +148,6 @@ namespace esphome{
                     ESP_LOGE(TAG,"An Error has occurred while mounting SPIFFS");
                 }
 
-                this->base_->get_server();
                 
                 this->base_->get_server()->on("/thermal-camera", HTTP_GET, [](AsyncWebServerRequest *request){
                     ESP_LOGI(TAG, "Sending the image");
@@ -177,7 +175,7 @@ namespace esphome{
                 this->median_temperature_sensor_->publish_state(medianTemp);
            }
            
-           if(this->driver->isConnected(MLX90640_address)){
+           if(MLX90640_isConnected(MLX90640_address)){
                    this->mlx_update();
            }else{
             ESP_LOGE(TAG, "The sensor is not connected");
@@ -206,22 +204,21 @@ namespace esphome{
             for (byte x = 0; x < speed_setting; x++)  // x < 2 Read both subpages
             {
                 uint16_t mlx90640Frame[834];
-                int status = this->mlxApi->MLX90640_GetFrameData(MLX90640_address, mlx90640Frame);
+                int status = MLX90640_GetFrameData(MLX90640_address, mlx90640Frame);
                 if (status < 0) {
                 ESP_LOGE(TAG,"GetFrame Error: %d",status);
                 }
 
-                float vdd = this->mlxApi->MLX90640_GetVdd(mlx90640Frame, &mlx90640);
-                float Ta  = this->mlxApi->MLX90640_GetTa(mlx90640Frame, &mlx90640);
+                float vdd = MLX90640_GetVdd(mlx90640Frame, &mlx90640);
+                float Ta  = MLX90640_GetTa(mlx90640Frame, &mlx90640);
                 float tr = Ta - TA_SHIFT;  // Reflected temperature based on the sensor ambient
                                     // temperature.  根据传感器环境温度反射温度
                 float emissivity = 0.95;
-                this->mlxApi->MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, pixels);  // save pixels temp to array (pixels).
+               MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, pixels);  // save pixels temp to array (pixels).
                                             // 保存像素temp到数组(像素)
-                int mode_ = this->mlxApi->MLX90640_GetCurMode(MLX90640_address);
+                int mode_ = MLX90640_GetCurMode(MLX90640_address);
                 // amendment.  修正案
-                this->mlxApi->MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_,
-                                            &mlx90640);
+                //MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_, &mlx90640);
             }
 
     
