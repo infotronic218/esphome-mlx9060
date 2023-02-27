@@ -149,6 +149,7 @@ int MLX90640_GetFrameData(uint8_t slaveAddr, uint16_t *frameData)
         return error;
     }     
         
+        
     error = MLX90640_I2CRead(slaveAddr, MLX90640_CTRL_REG, 1, &controlRegister1);
     frameData[832] = controlRegister1;
     //frameData[833] = statusRegister & 0x0001;

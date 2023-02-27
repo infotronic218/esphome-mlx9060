@@ -140,6 +140,7 @@ namespace esphome{
                   SetRefreshRate = MLX90640_SetRefreshRate(0x33, this->refresh_rate_);
                   if(this->refresh_rate_==0x05){
                       ESP_LOGI(TAG, "Refresh rate set to 16Hz ");
+                      
                   }else if(this->refresh_rate_==0x04){
                     ESP_LOGI(TAG, "Refresh rate set to 8Hz ");
                   }else{
