@@ -136,7 +136,12 @@ namespace esphome{
                 // 0x05 – 16Hz // OK
                 // 0x06 – 32Hz // Fail
                 // 0x07 – 64Hz
-                SetRefreshRate = MLX90640_SetRefreshRate(0x33, 0x05);
+                if(this->refresh_rate_){
+                  SetRefreshRate = MLX90640_SetRefreshRate(0x33, this->refresh_rate_);
+                }else{
+                  SetRefreshRate = MLX90640_SetRefreshRate(0x33, 0x05);
+                }
+                
                 // Once params are extracted, we can release eeMLX90640 array.
                 // 一旦提取了参数，我们就可以释放eeMLX90640数组
                 }else{
@@ -156,11 +161,6 @@ namespace esphome{
 
         }
         
-        void MLX90640::create_image(){
-       
-               
-
-        }
 
         void MLX90640::update()
         {
@@ -218,7 +218,7 @@ namespace esphome{
                                             // 保存像素temp到数组(像素)
                 int mode_ = MLX90640_GetCurMode(MLX90640_address);
                 // amendment.  修正案
-                //MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_, &mlx90640);
+                MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_, &mlx90640);
             }
 
     

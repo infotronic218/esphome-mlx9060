@@ -24,6 +24,7 @@ namespace esphome {
                 float mintemp_;
                 float maxtemp_; 
                 int frequency_ ;
+                int refresh_rate_ = -1 ;
                
                 web_server_base::WebServerBase *base_;
                 sensor::Sensor *min_temperature_sensor_{nullptr} ;
@@ -49,7 +50,7 @@ namespace esphome {
                void set_frequency(int freq){this->frequency_ = freq ;}
                void set_mintemp(float min ){this->mintemp_ = min ;}
                void set_maxtemp(float max ){this->maxtemp_ = max ;}
-
+               void set_refresh_rate(int refresh){this->refresh_rate_ = refresh;}
                
         };
     }

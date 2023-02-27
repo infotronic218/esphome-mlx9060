@@ -22,6 +22,7 @@ from esphome.const import (
 )
 
 CONF_I2C_ADDRESS = "address"
+CONF_REFRESH_RATE = "refresh_rate"
 CONF_SDA = "sda"
 CONF_SCL = "scl"
 CONF_FREQUENCY = "frequency"
@@ -49,6 +50,7 @@ CONFIG_SCHEMA = (
       cv.Required(CONF_I2C_ADDRESS):int ,
       cv.Required(CONF_MAXTEMP):int ,
       cv.Required(CONF_MINTEMP):int ,
+      cv.Optional(CONF_REFRESH_RATE):int ,
       cv.Optional(CONF_MIN_TEMPERATURE): sensor.sensor_schema(
                 unit_of_measurement=UNIT_CELSIUS,
                 accuracy_decimals=2,
@@ -131,6 +133,8 @@ async def to_code(config):
         max = config[CONF_MAXTEMP]
         cg.add(var.set_maxtemp(max))
 
-
+    if CONF_REFRESH_RATE in config:
+        refresh = config[CONF_REFRESH_RATE]
+        cg.add(var.set_refresh_rate(refresh))
 
 
