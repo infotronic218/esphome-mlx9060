@@ -138,8 +138,18 @@ namespace esphome{
                 // 0x07 – 64Hz
                 if(this->refresh_rate_){
                   SetRefreshRate = MLX90640_SetRefreshRate(0x33, this->refresh_rate_);
+                  if(this->refresh_rate_==0x05){
+                      ESP_LOGI(TAG, "Refresh rate set to 16Hz ");
+                  }else if(this->refresh_rate_==0x04){
+                    ESP_LOGI(TAG, "Refresh rate set to 8Hz ");
+                  }else{
+                    ESP_LOGI(TAG, "Refresh rate Not Valid ");
+                    SetRefreshRate = MLX90640_SetRefreshRate(0x33, 0x05);
+                  }
+                  
                 }else{
                   SetRefreshRate = MLX90640_SetRefreshRate(0x33, 0x05);
+                  ESP_LOGI(TAG, "Refresh rate set to 16Hz ");
                 }
                 
                 // Once params are extracted, we can release eeMLX90640 array.
