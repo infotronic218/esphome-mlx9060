@@ -243,7 +243,7 @@ namespace esphome{
                                             // 保存像素temp到数组(像素)
                 int mode_ = MLX90640_GetCurMode(MLX90640_address);
                 // amendment.  修正案
-                MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_, &mlx90640);
+                //MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_, &mlx90640);
             }
 
                 filter_outlier_pixel(pixels,sizeof(pixels) / sizeof(pixels[0]), this->filter_level_ );
