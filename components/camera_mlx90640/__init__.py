@@ -30,6 +30,7 @@ CONF_MEAN_TEMPERATURE = "mean_temperature"
 CONF_MEDIAN_TEMPERATURE = "median_temperature"
 CONF_MINTEMP = "mintemp"
 CONF_MAXTEMP = "maxtemp"
+CONF_FILTER_LEVEL = "filter_level"
 
 
 
@@ -51,6 +52,7 @@ CONFIG_SCHEMA = (
       cv.Required(CONF_MAXTEMP):int ,
       cv.Required(CONF_MINTEMP):int ,
       cv.Optional(CONF_REFRESH_RATE):int ,
+      cv.Optional(CONF_FILTER_LEVEL):float ,
       cv.Optional(CONF_MIN_TEMPERATURE): sensor.sensor_schema(
                 unit_of_measurement=UNIT_CELSIUS,
                 accuracy_decimals=2,
@@ -137,4 +139,7 @@ async def to_code(config):
         refresh = config[CONF_REFRESH_RATE]
         cg.add(var.set_refresh_rate(refresh))
 
+    if CONF_FILTER_LEVEL in config:
+        level = config[CONF_FILTER_LEVEL]
+        cg.add(var.set_filter_level(level))
 

@@ -54,7 +54,7 @@ camera_mlx90640:
   mintemp: 24 # Minimal temperature for color mapping
   maxtemp: 35 # Maximal temperature for color mapping
   refresh_rate: 0x05 # For 16Hz or 0x04 for 8Hz
-  
+  filter_level: 10.0 # Level in degree of the filter. If there a difference above the level, the pixel is approximated by the average of the next two pixels
   min_temperature:
       name: "MLX90640 Min temperature"
   max_temperature:

@@ -140,7 +140,7 @@ namespace esphome{
                   SetRefreshRate = MLX90640_SetRefreshRate(0x33, this->refresh_rate_);
                   if(this->refresh_rate_==0x05){
                       ESP_LOGI(TAG, "Refresh rate set to 16Hz ");
-                      
+
                   }else if(this->refresh_rate_==0x04){
                     ESP_LOGI(TAG, "Refresh rate set to 8Hz ");
                   }else{
@@ -171,7 +171,21 @@ namespace esphome{
                 });
 
         }
-        
+        void MLX90640::filter_outlier_pixel(float *pixels_ , int pixel_size , float level){
+            for(int i=1 ; i<pixel_size -1 ; i++){
+                if(abs(pixels_[i]-pixels_[i-1])>= level && abs((pixels_[i]-pixels_[i+1]))>= level ){
+                    pixels_[i] = (pixels_[i-1] + pixels_[i+1])/2.0 ;
+                }
+            }
+            // Check the zero index pixel
+            if(abs(pixels_[0]-pixels_[1])>=level && abs(pixels_[0]-pixels_[2])>=level){
+                pixels_[0] = (pixels_[1] +pixels_[2])/2.0 ;
+            }
+            // Check the zero index pixel
+            if(abs(pixels_[pixel_size-1]-pixels_[pixel_size-2])>=level && abs(pixels_[pixel_size-1]-pixels_[pixel_size-3])>=level){
+                pixels_[0] = (pixels_[pixel_size-2] +pixels_[pixel_size-3])/2.0 ;
+            }
+        }
 
         void MLX90640::update()
         {
@@ -232,7 +246,7 @@ namespace esphome{
                 MLX90640_BadPixelsCorrection((&mlx90640)->brokenPixels, pixels, mode_, &mlx90640);
             }
 
-    
+                filter_outlier_pixel(pixels,sizeof(pixels) / sizeof(pixels[0]), this->filter_level_ );
               //medianTemp = (mlx90640To[165]+mlx90640To[180]+mlx90640To[176]+mlx90640To[192]) / 4.0;  // Temp in Center - based on 4 pixels
                 medianTemp = (pixels[165]+pixels[180]+pixels[176]+pixels[192]) / 4.0;
                 max_v      = MINTEMP;

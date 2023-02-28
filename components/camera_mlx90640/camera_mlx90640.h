@@ -25,7 +25,7 @@ namespace esphome {
                 float maxtemp_; 
                 int frequency_ ;
                 int refresh_rate_ = -1 ;
-               
+                float filter_level_= 10.0 ;
                 web_server_base::WebServerBase *base_;
                 sensor::Sensor *min_temperature_sensor_{nullptr} ;
                 sensor::Sensor *max_temperature_sensor_{nullptr};
@@ -51,6 +51,10 @@ namespace esphome {
                void set_mintemp(float min ){this->mintemp_ = min ;}
                void set_maxtemp(float max ){this->maxtemp_ = max ;}
                void set_refresh_rate(int refresh){this->refresh_rate_ = refresh;}
+              
+               // filtering function
+               void set_filter_level(float level){this->filter_level_ = level ;}
+               void filter_outlier_pixel(float *pixels , int size , float level);
                
         };
     }
