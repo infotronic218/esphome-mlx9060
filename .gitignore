@@ -3,6 +3,7 @@
 # You can modify this file to suit your needs.
 /.esphome/
 /secrets.yaml
+/camera_text1.yaml
 /M5Stack/
 /components/esp32_camera_web_server/
 /components/mlx90640/

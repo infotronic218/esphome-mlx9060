@@ -1,9 +1,11 @@
 esphome:
-  name: esp32-for-testing-mlx9060
+  name: esp32_for_testing_mlx9060_2
   includes:
-    - components/FS
+  
   libraries:
     - Wire
+    - FS
+    - SPIFFS
   
  
 
@@ -65,9 +67,5 @@ camera_mlx90640:
       name: "MLX90640 Median temperature"
   
   
-
-
-
-    #sensors:
 web_server:
   port: 80
